@@ -1,0 +1,11 @@
+{
+  "type": "benchexpirationqueue",
+  "license": "MIT",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "require": {
+    "php": ">=8.1",
+    "ext-redis": "*",
+    "ext-pdo": "*"
+  }
+}

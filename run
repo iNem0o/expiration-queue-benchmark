@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+TOTAL_ITEMS=10000000
+
+docker-compose kill
+docker-compose rm -f
+docker-compose build
+docker-compose up -d --force-recreate
+
+OUTPUT_DIR="results/${TOTAL_ITEMS}"
+
+mkdir -p ${OUTPUT_DIR}
+rm -rf "${OUTPUT_DIR:?}/*"
+
+docker-compose run --rm bench php /app/bench/bench.php --storage=redis --total=${TOTAL_ITEMS} | tee "${OUTPUT_DIR}/redis.log"
+docker stats benchmarkqueue_redis_1 --no-stream --format "{\"memory_raw\":\"{{ .MemUsage }}\",\"memory_percent\":\"{{ .MemPerc }}\",\"memory_usage\":\"{{ .MemPerc }}\"}" | json_pp >${OUTPUT_DIR}/redis_container_stats.json
+
+docker-compose run --rm bench php /app/bench/bench.php --storage=mariadb --total=${TOTAL_ITEMS} | tee "${OUTPUT_DIR}/mariadb.log"
+docker stats benchmarkqueue_mariadb_1 --no-stream --format "{\"raw\":\"{{ .MemUsage }}\",\"percent\":\"{{ .MemPerc }}\"}" | json_pp >${OUTPUT_DIR}/mariadb_container_stats.json
